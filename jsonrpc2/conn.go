@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"sync/atomic"
 
 	"golang.org/x/exp/event"
@@ -271,6 +272,24 @@ func (c *Connection) Close() error {
 	// and then wait for it to cause the connection to close
 	if err := c.Wait(); err != nil && !isClosingError(err) {
 		return err
+	}
+	return nil
+}
+
+// LocalAddr returns the local network address. The Addr returned is
+// shared by all invocations of LocalAddr, so do not modify it.
+func (c *Connection) LocalAddr() net.Addr {
+	if conn, ok := c.closer.(interface{ LocalAddr() net.Addr }); ok {
+		return conn.LocalAddr()
+	}
+	return nil
+}
+
+// RemoteAddr returns the remote network address. The Addr returned is
+// shared by all invocations of RemoteAddr, so do not modify it.
+func (c *Connection) RemoteAddr() net.Addr {
+	if conn, ok := c.closer.(interface{ RemoteAddr() net.Addr }); ok {
+		return conn.RemoteAddr()
 	}
 	return nil
 }
